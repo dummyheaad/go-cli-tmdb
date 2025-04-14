@@ -7,8 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type AddFavoriteResponse struct {
@@ -68,10 +66,6 @@ type FavoriteTvResponse struct {
 func sendRequest(url, method, contentType string,
 	expStatus int, body io.Reader) ([]byte, error) {
 
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
 	authToken := os.Getenv("AUTH_TOKEN")
 
 	req, err := http.NewRequest(method, url, body)

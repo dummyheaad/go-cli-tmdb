@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,6 +20,13 @@ var rootCmd = &cobra.Command{
 	Short: "A client app (CLI based) for TMDB REST API",
 	Long: `tmdbCLI is a CLI based client app, build using Golang that can be used
 to perform request into The Movie Database (TMDB) REST API.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		err := godotenv.Load()
+		if err != nil {
+			return err
+		}
+		return nil
+	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },

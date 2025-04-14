@@ -123,9 +123,9 @@ func printFavMovies(out io.Writer, resp *account.FavoriteMoviesResponse) error {
 		fmt.Fprintf(w, "%d. ", i+1)
 		fmt.Fprintf(w, "Title: %s\n", r.Title)
 		fmt.Fprintf(w, "Release Date: %s\n", r.ReleaseDate)
-		fmt.Fprintf(w, "Popularity: %f\n", r.Popularity)
+		fmt.Fprintf(w, "Popularity: %.2f\n", r.Popularity)
 		fmt.Fprintf(w, "Vote Count: %d\n", r.VoteCount)
-		fmt.Fprintf(w, "Vote Average: %f\n\n", r.VoteAverage)
+		fmt.Fprintf(w, "Vote Average: %.2f\n\n", r.VoteAverage)
 	}
 	return w.Flush()
 }
@@ -138,9 +138,9 @@ func printFavTv(out io.Writer, resp *account.FavoriteTvResponse) error {
 		fmt.Fprintf(w, "%d. ", i+1)
 		fmt.Fprintf(w, "Name: %s\n", r.Name)
 		fmt.Fprintf(w, "First Air Date: %s\n", r.FirstAirDate)
-		fmt.Fprintf(w, "Popularity: %f\n", r.Popularity)
+		fmt.Fprintf(w, "Popularity: %.2f\n", r.Popularity)
 		fmt.Fprintf(w, "Vote Count: %d\n", r.VoteCount)
-		fmt.Fprintf(w, "Vote Average: %f\n\n", r.VoteAverage)
+		fmt.Fprintf(w, "Vote Average: %.2f\n\n", r.VoteAverage)
 	}
 	return w.Flush()
 }

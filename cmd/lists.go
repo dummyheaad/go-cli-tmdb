@@ -21,7 +21,7 @@ import (
 var listsCmd = &cobra.Command{
 	Use:          "lists <page>",
 	Short:        "Get a users list of custom lists",
-	Args:         cobra.ExactArgs(1),
+	Args:         cobra.MaximumNArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiRoot := viper.GetString("api-root")
@@ -36,13 +36,15 @@ var listsCmd = &cobra.Command{
 }
 
 func listsAction(out io.Writer, apiRoot string, args []string, isRaw bool) error {
-	var page int
-	if len(args) == 0 {
+	var (
 		page = 1
-	}
-	page, err := strconv.Atoi(args[0])
-	if err != nil {
-		return err
+		err  error
+	)
+	if len(args) > 0 {
+		page, err = strconv.Atoi(args[0])
+		if err != nil {
+			return err
+		}
 	}
 
 	url := fmt.Sprintf("%s/account/null", apiRoot)
