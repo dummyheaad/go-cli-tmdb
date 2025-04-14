@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"text/tabwriter"
 
 	"example.com/dummyheaad/tmdbCLI/account"
 	"github.com/spf13/cobra"
@@ -26,7 +27,7 @@ var favoriteCmd = &cobra.Command{
 
 var addCmd = &cobra.Command{
 	Use:          "add <media_type> <media_id> <is_favourite>",
-	Short:        "Mark a movie or TV show as a favourite\n<media_type>: movies or tv\n<media_id>: valid media id (integer)\n<is_favourite>: yes or no",
+	Short:        "Mark a movie or TV show as a favourite\n\n<media_type>: movies or tv\n<media_id>: valid media id (integer)\n<is_favourite>: yes or no\n",
 	SilenceUsage: true,
 	Args:         cobra.ExactArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -75,29 +76,73 @@ var getCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiRoot := viper.GetString("api-root")
 
-		mediaType := args[0]
+		isRaw, err := cmd.Flags().GetBool("raw")
+		if err != nil {
+			return err
+		}
 
-		return getAction(os.Stdout, apiRoot, mediaType)
+		return getAction(os.Stdout, apiRoot, args, isRaw)
 	},
 }
 
-func getAction(out io.Writer, apiRoot, mediaType string) error {
+func getAction(out io.Writer, apiRoot string, args []string, isRaw bool) error {
 
 	url := fmt.Sprintf("%s/account/null", apiRoot)
 
-	resp, err := account.GetFavorite(url, mediaType)
+	mediaType := args[0]
+
+	if mediaType == "movies" {
+		resp, err := account.GetFavorite[*account.FavoriteMoviesResponse](url, mediaType)
+		if err != nil {
+			return err
+		}
+
+		if isRaw {
+			return printResp(out, resp)
+		}
+
+		return printFavMovies(out, resp)
+	}
+	resp, err := account.GetFavorite[*account.FavoriteTvResponse](url, mediaType)
 	if err != nil {
 		return err
 	}
 
-	switch r := resp.(type) {
-	case *account.FavoriteMoviesResponse:
-		return printResp(out, r)
-	case *account.FavoriteTvResponse:
-		return printResp(out, r)
-	default:
-		return printResp(out, r)
+	if isRaw {
+		return printResp(out, resp)
 	}
+
+	return printFavTv(out, resp)
+}
+
+func printFavMovies(out io.Writer, resp *account.FavoriteMoviesResponse) error {
+	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)
+	results := resp.Results
+	fmt.Fprint(w, "Favorite Movies:\n")
+	for i, r := range results {
+		fmt.Fprintf(w, "%d. ", i+1)
+		fmt.Fprintf(w, "Title: %s\n", r.Title)
+		fmt.Fprintf(w, "Release Date: %s\n", r.ReleaseDate)
+		fmt.Fprintf(w, "Popularity: %f\n", r.Popularity)
+		fmt.Fprintf(w, "Vote Count: %d\n", r.VoteCount)
+		fmt.Fprintf(w, "Vote Average: %f\n\n", r.VoteAverage)
+	}
+	return w.Flush()
+}
+
+func printFavTv(out io.Writer, resp *account.FavoriteTvResponse) error {
+	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)
+	results := resp.Results
+	fmt.Fprint(w, "Favorite TV Shows:\n")
+	for i, r := range results {
+		fmt.Fprintf(w, "%d. ", i+1)
+		fmt.Fprintf(w, "Name: %s\n", r.Name)
+		fmt.Fprintf(w, "First Air Date: %s\n", r.FirstAirDate)
+		fmt.Fprintf(w, "Popularity: %f\n", r.Popularity)
+		fmt.Fprintf(w, "Vote Count: %d\n", r.VoteCount)
+		fmt.Fprintf(w, "Vote Average: %f\n\n", r.VoteAverage)
+	}
+	return w.Flush()
 }
 
 func init() {
@@ -110,6 +155,8 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// favoriteCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	getCmd.Flags().BoolP("raw", "r", false, "Print raw json output")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

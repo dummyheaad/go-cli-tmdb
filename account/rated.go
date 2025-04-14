@@ -81,7 +81,7 @@ type RatedTvEpisodeResponse struct {
 	TotalResults int                     `json:"total_results"`
 }
 
-func GetRatedEpisodes(url string) (any, error) {
+func GetRatedEpisodes(url string) (*RatedTvEpisodeResponse, error) {
 
 	// TODO: handle query params
 	u := fmt.Sprintf("%s/rated/tv/episodes?language=en-US&page=1&sort_by=created_at.asc", url)
@@ -91,7 +91,7 @@ func GetRatedEpisodes(url string) (any, error) {
 		return nil, err
 	}
 
-	var resp RatedTvEpisodeResponse
+	var resp *RatedTvEpisodeResponse
 	if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
 		return nil, err
 	}
@@ -99,7 +99,8 @@ func GetRatedEpisodes(url string) (any, error) {
 	return resp, nil
 }
 
-func GetRatedShow(url, mediaType string) (any, error) {
+func GetRatedShow[T *RatedMoviesResponse | *RatedTvResponse](url, mediaType string) (T, error) {
+	var resp T
 
 	// TODO: handle query params
 	u := fmt.Sprintf("%s/rated/%s?language=en-US&page=1&sort_by=created_at.asc", url, mediaType)
@@ -109,16 +110,6 @@ func GetRatedShow(url, mediaType string) (any, error) {
 		return nil, err
 	}
 
-	if mediaType == "movies" {
-		var resp RatedMoviesResponse
-		if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
-			return nil, err
-		}
-
-		return resp, nil
-	}
-
-	var resp RatedTvResponse
 	if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
 		return nil, err
 	}

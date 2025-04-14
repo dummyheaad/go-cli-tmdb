@@ -12,8 +12,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-
-	"example.com/dummyheaad/tmdbCLI/account"
 )
 
 // accountCmd represents the account command
@@ -23,21 +21,7 @@ var accountCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-func printDetails(out io.Writer, resp *account.DetailsResponse) error {
-	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)
-	fmt.Fprintf(w, "Account details for %d\n", resp.ID)
-	fmt.Fprintf(w, "ID: %d\n", resp.ID)
-	fmt.Fprintf(w, "Username: %s\n", resp.Username)
-	fmt.Fprintf(w, "Include Adult: %t\n", resp.IncludeAdult)
-	fmt.Fprintf(w, "ISO_639_1: %s\n", resp.ISO_639_1)
-	fmt.Fprintf(w, "ISO_3166_1: %s\n", resp.ISO_3166_1)
-	fmt.Fprintf(w, "Avatar\n\tGravatar\n\t\tHash: %s\n", resp.Avatar.Gravatar.Hash)
-	fmt.Fprintf(w, "Avatar\n\tTMDB\n\t\tAvatar Path: %s\n", resp.Avatar.Tmdb.AvatarPath)
-	return w.Flush()
-}
-
-// TODO: implement printFavMovies and printFavTvShow
-// TODO: implement printWatchlistMovies and printWatchlistTvShow
+// TODO: implement unit test and integration test
 
 func printResp(out io.Writer, resp any) error {
 	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)

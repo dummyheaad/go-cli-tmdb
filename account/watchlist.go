@@ -99,7 +99,8 @@ func AddWatchlist(url, mediaType string, mediaID int, watchlist bool) (*AddWatch
 	return resp, nil
 }
 
-func GetWatchlist(url, mediaType string) (any, error) {
+func GetWatchlist[T *WatchlistMoviesResponse | *WatchlistTvResponse](url, mediaType string) (T, error) {
+	var resp T
 
 	// TODO: handle query params
 	u := fmt.Sprintf("%s/watchlist/%s?language=en-US&page=1&sort_by=created_at.asc", url, mediaType)
@@ -109,16 +110,6 @@ func GetWatchlist(url, mediaType string) (any, error) {
 		return nil, err
 	}
 
-	if mediaType == "movies" {
-		var resp WatchlistMoviesResponse
-		if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
-			return nil, err
-		}
-
-		return resp, nil
-	}
-
-	var resp WatchlistTvResponse
 	if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
 		return nil, err
 	}

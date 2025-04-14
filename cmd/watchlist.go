@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"text/tabwriter"
 
 	"example.com/dummyheaad/tmdbCLI/account"
 	"github.com/spf13/cobra"
@@ -76,29 +77,74 @@ var getWatchlistCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiRoot := viper.GetString("api-root")
 
-		return getWatchlistAction(os.Stdout, apiRoot, args)
+		isRaw, err := cmd.Flags().GetBool("raw")
+		if err != nil {
+			return err
+		}
+
+		return getWatchlistAction(os.Stdout, apiRoot, args, isRaw)
 	},
 }
 
-func getWatchlistAction(out io.Writer, apiRoot string, args []string) error {
+func getWatchlistAction(out io.Writer, apiRoot string, args []string, isRaw bool) error {
 
 	url := fmt.Sprintf("%s/account/null", apiRoot)
 
 	mediaType := args[0]
 
-	resp, err := account.GetWatchlist(url, mediaType)
+	if mediaType == "movies" {
+		resp, err := account.GetWatchlist[*account.WatchlistMoviesResponse](url, mediaType)
+		if err != nil {
+			return err
+		}
+
+		if isRaw {
+			return printResp(out, resp)
+		}
+
+		return printWatchlistMovies(out, resp)
+	}
+
+	resp, err := account.GetWatchlist[*account.WatchlistTvResponse](url, mediaType)
 	if err != nil {
 		return err
 	}
 
-	switch r := resp.(type) {
-	case *account.WatchlistMoviesResponse:
-		return printResp(out, r)
-	case *account.WatchlistTvResponse:
-		return printResp(out, r)
-	default:
-		return printResp(out, r)
+	if isRaw {
+		return printResp(out, resp)
 	}
+
+	return printWatchlistTv(out, resp)
+}
+
+func printWatchlistMovies(out io.Writer, resp *account.WatchlistMoviesResponse) error {
+	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)
+	results := resp.Results
+	fmt.Fprint(w, "Watchlist Movies:\n")
+	for i, r := range results {
+		fmt.Fprintf(w, "%d. ", i+1)
+		fmt.Fprintf(w, "Title: %s\n", r.Title)
+		fmt.Fprintf(w, "Release Date: %s\n", r.ReleaseDate)
+		fmt.Fprintf(w, "Popularity: %f\n", r.Popularity)
+		fmt.Fprintf(w, "Vote Count: %d\n", r.VoteCount)
+		fmt.Fprintf(w, "Vote Average: %f\n\n", r.VoteAverage)
+	}
+	return w.Flush()
+}
+
+func printWatchlistTv(out io.Writer, resp *account.WatchlistTvResponse) error {
+	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)
+	results := resp.Results
+	fmt.Fprint(w, "Watchlist TV Shows:\n")
+	for i, r := range results {
+		fmt.Fprintf(w, "%d. ", i+1)
+		fmt.Fprintf(w, "Name: %s\n", r.Name)
+		fmt.Fprintf(w, "First Air Date: %s\n", r.FirstAirDate)
+		fmt.Fprintf(w, "Popularity: %f\n", r.Popularity)
+		fmt.Fprintf(w, "Vote Count: %d\n", r.VoteCount)
+		fmt.Fprintf(w, "Vote Average: %f\n\n", r.VoteAverage)
+	}
+	return w.Flush()
 }
 
 func init() {
@@ -111,6 +157,8 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// watchlistCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	getWatchlistCmd.Flags().BoolP("raw", "r", false, "Print raw json output")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

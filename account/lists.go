@@ -20,7 +20,7 @@ type listsResults struct {
 
 type ListsResponse struct {
 	Page         int            `json:"page"`
-	Result       []listsResults `json:"results"`
+	Results      []listsResults `json:"results"`
 	TotalPages   int            `json:"total_pages"`
 	TotalResults int            `json:"total_results"`
 }

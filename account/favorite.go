@@ -150,7 +150,8 @@ func AddFavorite(url, mediaType string, mediaID int, favorite bool) (*AddFavorit
 	return resp, nil
 }
 
-func GetFavorite(url, mediaType string) (any, error) {
+func GetFavorite[T *FavoriteMoviesResponse | *FavoriteTvResponse](url, mediaType string) (T, error) {
+	var resp T
 
 	// TODO: handle query params
 	u := fmt.Sprintf("%s/favorite/%s?language=en-US&page=1&sort_by=created_at.asc", url, mediaType)
@@ -160,16 +161,6 @@ func GetFavorite(url, mediaType string) (any, error) {
 		return nil, err
 	}
 
-	if mediaType == "movies" {
-		var resp FavoriteMoviesResponse
-		if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
-			return nil, err
-		}
-
-		return resp, nil
-	}
-
-	var resp FavoriteTvResponse
 	if err := json.NewDecoder(bytes.NewReader(respByte)).Decode(&resp); err != nil {
 		return nil, err
 	}
