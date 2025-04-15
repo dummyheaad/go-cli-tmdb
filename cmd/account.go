@@ -21,7 +21,7 @@ var accountCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-// TODO: implement unit test and integration test
+// TODO: implement integration test on account API
 
 func printResp(out io.Writer, resp any) error {
 	w := tabwriter.NewWriter(out, 3, 2, 0, ' ', 0)
